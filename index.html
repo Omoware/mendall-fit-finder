@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mendall Alterations — Custom Fit Finder</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --teal-bg:   #E1F5EE;
+    --teal-mid:  #1D9E75;
+    --teal-dark: #085041;
+    --teal-lite: #9FE1CB;
+    --pink-bg:   #FBEAF0;
+    --pink-mid:  #D4537E;
+    --pink-dark: #72243E;
+    --pink-lite: #F4C0D1;
+    --green-bg:  #EAF3DE;
+    --green-dark:#27500A;
+    --blue-bg:   #E6F1FB;
+    --blue-dark: #0C447C;
+    --amber-bg:  #FAEEDA;
+    --amber-dark:#633806;
+    --gray-50:   #F9F9F9;
+    --gray-100:  #F1F1F1;
+    --gray-200:  #E0E0E0;
+    --gray-400:  #9E9E9E;
+    --gray-600:  #555555;
+    --gray-900:  #1A1A1A;
+    --white:     #FFFFFF;
+    --radius-sm: 8px;
+    --radius-md: 12px;
+    --radius-lg: 18px;
+  }
+
+  body {
+    font-family: 'Inter', sans-serif;
+    background: #F4F4F2;
+    color: var(--gray-900);
+    min-height: 100vh;
+    padding: 2rem 1rem 4rem;
+  }
+
+  .page { max-width: 520px; margin: 0 auto; }
+
+  /* ── HEADER ── */
+  .brand { margin-bottom: 2rem; }
+  .brand-name { font-size: 13px; font-weight: 600; letter-spacing: 0.12em; color: var(--gray-400); text-transform: uppercase; margin-bottom: 4px; }
+  .brand-title { font-size: 24px; font-weight: 600; color: var(--gray-900); }
+  .brand-sub { font-size: 14px; color: var(--gray-600); margin-top: 4px; }
+
+  /* ── CARD ── */
+  .card { background: var(--white); border-radius: var(--radius-lg); padding: 1.5rem; margin-bottom: 1rem; border: 1px solid var(--gray-200); }
+
+  /* ── GENDER TOGGLE ── */
+  .gender-row { display: flex; gap: 8px; margin-bottom: 1.25rem; }
+  .g-btn {
+    flex: 1; padding: 10px 8px; border-radius: var(--radius-sm);
+    border: 1px solid var(--gray-200); background: var(--gray-50);
+    font-size: 14px; font-weight: 500; color: var(--gray-600);
+    cursor: pointer; font-family: 'Inter', sans-serif;
+    transition: all 0.15s; display: flex; align-items: center; justify-content: center; gap: 6px;
+  }
+  .g-btn svg { width: 16px; height: 16px; }
+  .g-btn.active-m { background: var(--teal-bg); color: var(--teal-dark); border-color: var(--teal-mid); }
+  .g-btn.active-w { background: var(--pink-bg); color: var(--pink-dark); border-color: var(--pink-mid); }
+
+  /* ── UNIT TOGGLE ── */
+  .unit-row { display: flex; align-items: center; gap: 8px; margin-bottom: 1.25rem; font-size: 13px; color: var(--gray-600); }
+  .u-btn {
+    padding: 4px 12px; border-radius: 20px; border: 1px solid var(--gray-200);
+    background: transparent; font-size: 12px; color: var(--gray-600); cursor: pointer;
+    font-family: 'Inter', sans-serif; transition: all 0.15s;
+  }
+  .u-btn.on { background: var(--gray-900); color: var(--white); border-color: var(--gray-900); }
+
+  /* ── FIELDS ── */
+  .fields { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 1.25rem; }
+  .field label { display: block; font-size: 12px; font-weight: 500; color: var(--gray-600); margin-bottom: 6px; }
+  .field label .opt { font-weight: 400; color: var(--gray-400); }
+  .field input {
+    width: 100%; padding: 10px 12px; border-radius: var(--radius-sm);
+    border: 1px solid var(--gray-200); background: var(--gray-50);
+    font-size: 15px; font-family: 'Inter', sans-serif; color: var(--gray-900);
+    transition: border-color 0.15s; outline: none;
+  }
+  .field input:focus { border-color: var(--gray-900); background: var(--white); }
+  .field input::placeholder { color: var(--gray-400); }
+
+  /* ── RESULT ── */
+  .result-empty { text-align: center; padding: 2.5rem 1rem; color: var(--gray-400); }
+  .result-empty svg { width: 32px; height: 32px; margin-bottom: 10px; display: block; margin-left: auto; margin-right: auto; opacity: 0.4; }
+  .result-empty p { font-size: 14px; }
+
+  .size-display { display: flex; align-items: flex-start; gap: 16px; margin-bottom: 1.25rem; }
+  .size-num { font-size: 64px; font-weight: 600; line-height: 1; }
+  .size-meta { padding-top: 8px; }
+  .size-label { font-size: 12px; color: var(--gray-600); margin-bottom: 6px; }
+  .match-badge { display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 500; }
+
+  /* ── FIT BARS ── */
+  .fit-bars { display: grid; gap: 10px; margin-bottom: 1.25rem; }
+  .fit-row { display: flex; align-items: center; gap: 10px; font-size: 12px; }
+  .fit-row .fl { width: 56px; color: var(--gray-600); flex-shrink: 0; }
+  .bar-wrap { flex: 1; height: 6px; background: var(--gray-100); border-radius: 3px; overflow: hidden; }
+  .bar-fill { height: 100%; border-radius: 3px; transition: width 0.4s ease; }
+  .fit-row .fr { width: 76px; color: var(--gray-400); text-align: right; font-size: 11px; }
+
+  /* ── LENGTH BLOCK ── */
+  .length-block { border-top: 1px solid var(--gray-100); padding-top: 1.25rem; margin-top: 1.25rem; }
+  .length-title { font-size: 13px; font-weight: 600; color: var(--gray-900); margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
+  .length-title svg { width: 15px; height: 15px; }
+  .length-pill { display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px; border-radius: 20px; font-size: 13px; font-weight: 600; margin-bottom: 10px; }
+  .pill-exact { background: var(--green-bg); color: var(--green-dark); }
+  .pill-up    { background: var(--amber-bg); color: var(--amber-dark); }
+  .pill-down  { background: var(--blue-bg);  color: var(--blue-dark); }
+  .length-note { font-size: 12px; color: var(--gray-600); line-height: 1.6; padding: 10px 14px; border-radius: var(--radius-sm); }
+  .note-green { background: var(--green-bg); color: var(--green-dark); }
+  .note-amber { background: var(--amber-bg); color: var(--amber-dark); }
+  .note-blue  { background: var(--blue-bg);  color: var(--blue-dark); }
+  .note-gray  { background: var(--gray-100); color: var(--gray-600); }
+
+  /* ── NO INSEAM PROMPT ── */
+  .inseam-prompt { margin-top: 1rem; padding: 10px 14px; border-radius: var(--radius-sm); background: var(--gray-100); font-size: 12px; color: var(--gray-600); }
+
+  /* ── ALT SIZES ── */
+  .alts { margin-top: 1rem; }
+  .alts-label { font-size: 12px; color: var(--gray-400); margin-bottom: 6px; }
+  .alt-chips { display: flex; gap: 8px; flex-wrap: wrap; }
+  .alt-chip { padding: 4px 14px; border-radius: 20px; font-size: 12px; border: 1px solid var(--gray-200); color: var(--gray-600); background: var(--gray-50); }
+
+  /* ── SIZE NOTE ── */
+  .size-note { margin-top: 10px; padding: 10px 14px; border-radius: var(--radius-sm); background: var(--amber-bg); color: var(--amber-dark); font-size: 12px; line-height: 1.6; }
+
+  /* ── TIPS ── */
+  .tips-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .tip { background: var(--white); border: 1px solid var(--gray-200); border-radius: var(--radius-sm); padding: 12px; }
+  .tip-title { font-size: 13px; font-weight: 600; color: var(--gray-900); margin-bottom: 4px; }
+  .tip-body { font-size: 12px; color: var(--gray-600); line-height: 1.5; }
+
+  /* ── FOOTER ── */
+  .footer { text-align: center; margin-top: 2rem; font-size: 12px; color: var(--gray-400); line-height: 1.8; }
+  .footer a { color: var(--gray-600); text-decoration: none; }
+
+  @media (max-width: 420px) {
+    .fields { grid-template-columns: 1fr; }
+    .tips-grid { grid-template-columns: 1fr; }
+    .size-num { font-size: 52px; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <div class="brand">
+    <div class="brand-name">Mendall Alterations</div>
+    <div class="brand-title">Custom Fit Finder</div>
+    <div class="brand-sub">Enter your measurements to find your perfect trouser size.</div>
+  </div>
+
+  <div class="card">
+    <div class="gender-row">
+      <button class="g-btn active-m" id="btn-m" onclick="setGender('m')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="10" cy="14" r="5"/><line x1="19" y1="5" x2="14.5" y2="9.5"/><polyline points="15 5 19 5 19 9"/></svg>
+        Men's
+      </button>
+      <button class="g-btn" id="btn-w" onclick="setGender('w')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="10" r="5"/><line x1="12" y1="15" x2="12" y2="21"/><line x1="9" y1="18" x2="15" y2="18"/></svg>
+        Women's
+      </button>
+    </div>
+
+    <div class="unit-row">
+      Units:
+      <button class="u-btn on" id="u-cm" onclick="setUnit('cm')">cm</button>
+      <button class="u-btn" id="u-in" onclick="setUnit('in')">inches</button>
+    </div>
+
+    <div class="fields">
+      <div class="field">
+        <label id="lbl-waist">Waist (cm)</label>
+        <input type="number" id="inp-waist" placeholder="e.g. 87" step="0.5" oninput="compute()">
+      </div>
+      <div class="field">
+        <label id="lbl-hip">Hip (cm)</label>
+        <input type="number" id="inp-hip" placeholder="e.g. 102" step="0.5" oninput="compute()">
+      </div>
+      <div class="field">
+        <label id="lbl-inseam">Inseam (cm)</label>
+        <input type="number" id="inp-inseam" placeholder="e.g. 80" step="0.5" oninput="compute()">
+      </div>
+      <div class="field">
+        <label id="lbl-thigh">Thigh (cm) <span class="opt">optional</span></label>
+        <input type="number" id="inp-thigh" placeholder="e.g. 59" step="0.5" oninput="compute()">
+      </div>
+    </div>
+
+    <div id="result-card">
+      <div class="result-empty" id="result-empty">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 3H5a2 2 0 0 0-2 2v4m6-6h10a2 2 0 0 1 2 2v4M9 3v18m0 0h10a2 2 0 0 0 2-2v-4M9 21H5a2 2 0 0 1-2-2v-4m0 0h18"/></svg>
+        <p>Enter your waist and hip measurements to get started</p>
+      </div>
+      <div id="result-content" style="display:none"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div style="font-size:13px;font-weight:600;color:var(--gray-900);margin-bottom:12px;">How to measure</div>
+    <div class="tips-grid">
+      <div class="tip">
+        <div class="tip-title">Waist</div>
+        <div class="tip-body">Narrowest part of torso, 2–3 cm above the navel.</div>
+      </div>
+      <div class="tip">
+        <div class="tip-title">Hip</div>
+        <div class="tip-body">Fullest part of hips and seat, feet together.</div>
+      </div>
+      <div class="tip">
+        <div class="tip-title">Inseam</div>
+        <div class="tip-body">Crotch seam to ankle bone along the inner leg.</div>
+      </div>
+      <div class="tip">
+        <div class="tip-title">Thigh</div>
+        <div class="tip-body">Fullest part of upper thigh, 2–3 cm below the crotch.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer">
+    <p>Between sizes? Go up and visit Mendall Alterations for a perfect custom fit.</p>
+    <p style="margin-top:6px"><a href="https://mendallalterations.com">mendallalterations.com</a></p>
+  </div>
+</div>
+
+<script>
+const DATA = {
+  m: [
+    {size:'28',waist:[71,73],hip:[86,88],inseam:[74,76],thigh:[52,54]},
+    {size:'30',waist:[76,78],hip:[91,93],inseam:[76,78],thigh:[54,56]},
+    {size:'32',waist:[81,83],hip:[96,98],inseam:[78,80],thigh:[56,58]},
+    {size:'34',waist:[86,88],hip:[101,103],inseam:[79,81],thigh:[58,60]},
+    {size:'36',waist:[91,93],hip:[106,108],inseam:[80,82],thigh:[60,62]},
+    {size:'38',waist:[96,98],hip:[111,113],inseam:[81,83],thigh:[62,64]},
+    {size:'40',waist:[101,103],hip:[116,118],inseam:[82,84],thigh:[64,66]},
+    {size:'42',waist:[106,108],hip:[121,123],inseam:[83,85],thigh:[66,68]},
+    {size:'44',waist:[111,114],hip:[126,129],inseam:[84,86],thigh:[68,71]},
+  ],
+  w: [
+    {size:'6', waist:[63,65], hip:[86,88],  inseam:[72,74],thigh:[51,53]},
+    {size:'8', waist:[68,70], hip:[91,93],  inseam:[73,75],thigh:[53,55]},
+    {size:'10',waist:[73,75], hip:[96,98],  inseam:[74,76],thigh:[55,57]},
+    {size:'12',waist:[78,80], hip:[101,103],inseam:[75,77],thigh:[57,59]},
+    {size:'14',waist:[83,85], hip:[106,108],inseam:[76,78],thigh:[59,61]},
+    {size:'16',waist:[88,90], hip:[111,113],inseam:[77,79],thigh:[61,63]},
+    {size:'18',waist:[93,96], hip:[116,119],inseam:[78,80],thigh:[63,65]},
+    {size:'20',waist:[98,101],hip:[121,124],inseam:[79,81],thigh:[65,68]},
+    {size:'22',waist:[104,107],hip:[127,130],inseam:[80,82],thigh:[68,71]},
+  ]
+};
+
+const CM2IN = 0.3937;
+let gender = 'm', unit = 'cm';
+
+function setGender(g) {
+  gender = g;
+  document.getElementById('btn-m').className = 'g-btn' + (g==='m' ? ' active-m' : '');
+  document.getElementById('btn-w').className = 'g-btn' + (g==='w' ? ' active-w' : '');
+  compute();
+}
+
+function setUnit(u) {
+  unit = u;
+  document.getElementById('u-cm').className = 'u-btn' + (u==='cm' ? ' on' : '');
+  document.getElementById('u-in').className = 'u-btn' + (u==='in' ? ' on' : '');
+  const s = u==='cm' ? '(cm)' : '(inches)';
+  document.getElementById('lbl-waist').innerHTML = `Waist ${s}`;
+  document.getElementById('lbl-hip').innerHTML = `Hip ${s}`;
+  document.getElementById('lbl-inseam').innerHTML = `Inseam ${s}`;
+  document.getElementById('lbl-thigh').innerHTML = `Thigh ${s} <span class="opt">optional</span>`;
+  ['inp-waist','inp-hip','inp-inseam','inp-thigh'].forEach(id => {
+    const el = document.getElementById(id);
+    el.value = '';
+    if(id==='inp-waist') el.placeholder = u==='cm'?'e.g. 87':'e.g. 34';
+    if(id==='inp-hip')   el.placeholder = u==='cm'?'e.g. 102':'e.g. 40';
+    if(id==='inp-inseam')el.placeholder = u==='cm'?'e.g. 80':'e.g. 31';
+    if(id==='inp-thigh') el.placeholder = u==='cm'?'e.g. 59':'e.g. 23';
+  });
+  compute();
+}
+
+function toCm(v) { return unit==='in' ? v/CM2IN : v; }
+function inRange(v,r) { return v>=r[0] && v<=r[1]; }
+function rangeScore(v,r) { return inRange(v,r)?0:Math.min(Math.abs(v-r[0]),Math.abs(v-r[1])); }
+function fitPct(v,r) {
+  if(!v) return null;
+  if(inRange(v,r)) return 100;
+  const d = Math.min(Math.abs(v-r[0]),Math.abs(v-r[1]));
+  return Math.max(0, Math.round(100-(d/(r[1]-r[0]+4))*120));
+}
+function fmt(cm) { return unit==='in' ? `${(cm*CM2IN).toFixed(1)}"` : `${Math.round(cm)} cm`; }
+function fmtRange(r) { return unit==='in' ? `${(r[0]*CM2IN).toFixed(1)}–${(r[1]*CM2IN).toFixed(1)}"` : `${r[0]}–${r[1]} cm`; }
+
+function compute() {
+  const wv=parseFloat(document.getElementById('inp-waist').value);
+  const hv=parseFloat(document.getElementById('inp-hip').value);
+  const iv=parseFloat(document.getElementById('inp-inseam').value);
+  const tv=parseFloat(document.getElementById('inp-thigh').value);
+
+  if(!wv && !hv) {
+    document.getElementById('result-empty').style.display='';
+    document.getElementById('result-content').style.display='none';
+    return;
+  }
+
+  const w=wv?toCm(wv):null, h=hv?toCm(hv):null;
+  const ins=iv?toCm(iv):null, th=tv?toCm(tv):null;
+
+  const rows = DATA[gender];
+  let best=null, bestScore=Infinity;
+  rows.forEach(row => {
+    let sc=0;
+    if(w)   sc += rangeScore(w,row.waist)*2;
+    if(h)   sc += rangeScore(h,row.hip)*1.5;
+    if(ins) sc += rangeScore(ins,row.inseam)*0.5;
+    if(th)  sc += rangeScore(th,row.thigh);
+    if(sc<bestScore){bestScore=sc;best=row;}
+  });
+
+  const exact = (w?inRange(w,best.waist):true)&&(h?inRange(h,best.hip):true);
+  const ac = gender==='m' ? 'var(--teal-dark)' : 'var(--pink-dark)';
+  const abg = gender==='m' ? 'var(--teal-bg)' : 'var(--pink-bg)';
+  const bar = gender==='m' ? '#1D9E75' : '#D4537E';
+
+  const idx = rows.indexOf(best);
+  const alts = [];
+  if(idx>0) alts.push(rows[idx-1].size);
+  if(idx<rows.length-1) alts.push(rows[idx+1].size);
+
+  const measures = [
+    {label:'Waist',val:w,range:best.waist},
+    {label:'Hip',val:h,range:best.hip},
+    {label:'Inseam',val:ins,range:best.inseam},
+    {label:'Thigh',val:th,range:best.thigh},
+  ].filter(m=>m.val!==null);
+
+  // Length status
+  let lenHTML = '';
+  if(ins) {
+    const mid=(best.inseam[0]+best.inseam[1])/2;
+    const diff=ins-mid;
+    const inLen=inRange(ins,best.inseam);
+    if(inLen) {
+      lenHTML=`<div class="length-pill pill-exact">✓ Length is a match — no alteration needed</div>
+        <div class="length-note note-green">The customer's inseam falls within the standard range for this size.</div>`;
+    } else if(diff>0) {
+      const d=Math.round(ins-best.inseam[1]);
+      lenHTML=`<div class="length-pill pill-up">↑ Let down by approx. ${fmt(d)}</div>
+        <div class="length-note note-amber">Customer's inseam is longer than standard. Check that the trouser has enough hem allowance to let out before confirming.</div>`;
+    } else {
+      const d=Math.round(best.inseam[0]-ins);
+      lenHTML=`<div class="length-pill pill-down">↓ Hem up by approx. ${fmt(d)}</div>
+        <div class="length-note note-blue">Customer's inseam is shorter than standard. Mark the hem on the customer before stitching to confirm preferred break on the shoe.</div>`;
+    }
+  } else {
+    lenHTML=`<div class="inseam-prompt">Add your inseam measurement above to get a length adjustment recommendation.</div>`;
+  }
+
+  let html = `
+    <div class="size-display">
+      <div class="size-num" style="color:${ac}">${best.size}</div>
+      <div class="size-meta">
+        <div class="size-label">Recommended size</div>
+        <div class="match-badge" style="background:${abg};color:${ac}">${exact?'✓ Exact match':'Closest match — size up recommended'}</div>
+      </div>
+    </div>`;
+
+  if(measures.length) {
+    html += `<div class="fit-bars">`;
+    measures.forEach(m=>{
+      const pct=fitPct(m.val,m.range);
+      html+=`<div class="fit-row">
+        <span class="fl">${m.label}</span>
+        <div class="bar-wrap"><div class="bar-fill" style="width:${pct}%;background:${pct>=80?bar:'#D3D1C7'}"></div></div>
+        <span class="fr">${fmtRange(m.range)}</span>
+      </div>`;
+    });
+    html += `</div>`;
+  }
+
+  html += `<div class="length-block">
+    <div class="length-title">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><polyline points="19 12 12 19 5 12"/></svg>
+      Length adjustment
+    </div>${lenHTML}</div>`;
+
+  if(!exact) {
+    html+=`<div class="size-note">Between sizes? Go up a size — Mendall Alterations can tailor the fit perfectly.</div>`;
+  }
+
+  if(alts.length) {
+    html+=`<div class="alts"><div class="alts-label">Adjacent sizes</div><div class="alt-chips">${alts.map(s=>`<span class="alt-chip">${s}</span>`).join('')}</div></div>`;
+  }
+
+  document.getElementById('result-empty').style.display='none';
+  document.getElementById('result-content').style.display='';
+  document.getElementById('result-content').innerHTML=html;
+}
+</script>
+</body>
+</html>
